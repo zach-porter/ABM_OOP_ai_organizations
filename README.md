@@ -1,6 +1,7 @@
 
 # Organization ABM with Generative AI
 This project simulates the impact of generative AI on social dynamics and knowledge exchange within an organization using an Agent-Based Model (ABM). <br />
+
 The model incorporates hierarchical and social networks, diverse agent behaviors, AI evolution, and dynamic network changes to provide insights into how AI influences workforce dynamics and organizational performance.
 
 ## Table of Contents
@@ -19,6 +20,7 @@ License<br />
 
 ## Project Overview
 This ABM models how agents (employees) within an organization interact with each other and with a Generative AI system. The organizational structure is represented by a hierarchical network, while social interactions are captured via a small-world or scale-free network. Agents dynamically adjust their attitudes toward AI based on their experiences, and the generative AI evolves its knowledge contribution based on its usage.<br />
+
 The model also allows for dynamic network changes to simulate real-world organizational shifts, such as new social ties being formed or dissolved over time within the organization. In addition, various behavioral dynamics and advanced data analysis features are implemented to explore correlations between AI utilization and knowledge growth.
 
 ## Features
@@ -31,6 +33,7 @@ The model also allows for dynamic network changes to simulate real-world organiz
 
 ## Dependencies
 This project uses the following Python packages:<br />
+
 -NetworkX: For network creation and analysis<br />
 -Matplotlib: For plotting and visualizations<br />
 -Pandas: For data manipulation and analysis<br />
