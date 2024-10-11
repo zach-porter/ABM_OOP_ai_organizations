@@ -14,6 +14,9 @@ from networks import (
     add_random_edges,
     remove_random_edges
 )
+import glob
+import imageio
+import cv2
 
 class OrganizationModel:
     """
@@ -128,9 +131,12 @@ class OrganizationModel:
     def assign_role(self, agent_id, num_levels, span_of_control, roles, role_probs):
         """
         Assigns a role to an agent based on hierarchical level and predefined probabilities.
+        This is a simple approach and can be improved, e.g. by considering the number of direct reports(i.e. span of control),
+        num_levels in the organization, etc.
         """
         # Determine hierarchical level
         level = self.get_agent_level(agent_id)
+        # Assign role based on level
         if level == 0:
             return 'CEO'
         else:
@@ -154,6 +160,9 @@ class OrganizationModel:
     def assign_ai_attitude(self):
         """
         Assigns an initial attitude towards AI based on predefined probabilities.
+        This is a simple approach and can be improved, e.g. by considering the 
+        AI's contribution, the organization's structure, etc. I would like to explore
+        the recent relevant research in this area and implement a more sophisticated approach.
         """
         r = random.random()
         if r < 0.5:
@@ -242,12 +251,19 @@ class OrganizationModel:
         if self.dynamic_network and self.current_step % self.network_change_frequency == 0:
             self.modify_social_network()
 
+        # Visualize networks at each step
+        #if self.current_step % 10 == 0:  # Visualize every 10 steps
+        self.visualize_networks()
+
         # Collect Data
         self.collect_data()
 
     def modify_social_network(self):
         """
         Dynamically modifies the social network by adding/removing edges.
+        I think this can/should be improved. Right now it's just random,
+        but it would be great if it could remove edges or agents because of some
+        actual action of the system.
         """
         print(f"Modifying social network at step {self.current_step}...")
         # Decide randomly to add or remove edges
@@ -292,20 +308,80 @@ class OrganizationModel:
 
     def visualize_networks(self):
         """
-        Visualizes the organizational and social interaction networks.
+        Visualizes the organizational and social interaction networks at each time step.
         """
+        # Create a directory to store the network images if it doesn't exist
+        visualization_dir = os.path.join(os.getcwd(), 'network_visualizations')
+        os.makedirs(visualization_dir, exist_ok=True)
+
         # Organizational Network
         plt.figure(figsize=(12, 8))
         pos_org = nx.spring_layout(self.org_network.to_undirected(), seed=42)
         nx.draw(self.org_network.to_undirected(), pos=pos_org, with_labels=True, node_size=300, 
                 node_color='lightblue', edge_color='gray', arrows=True)
-        plt.title("Organizational Network")
-        plt.show()
+        plt.title(f"Organizational Network - Step {self.current_step}")
+        org_network_path = os.path.join(visualization_dir, f'org_network_step_{self.current_step}.png')
+        plt.savefig(org_network_path)
+        plt.close()
 
         # Social Interaction Network
         plt.figure(figsize=(12, 8))
         pos_social = nx.spring_layout(self.social_network, seed=42)
         nx.draw(self.social_network, pos=pos_social, with_labels=False, node_size=50, 
                 node_color='lightgreen', edge_color='gray')
-        plt.title("Social Interaction Network")
-        plt.show()
+        plt.title(f"Social Interaction Network - Step {self.current_step}")
+        social_network_path = os.path.join(visualization_dir, f'social_network_step_{self.current_step}.png')
+        plt.savefig(social_network_path)
+        plt.close()
+
+        print(f"Network visualizations saved in: {visualization_dir}")
+
+    def create_network_gif(self, network_type):
+        """
+        Creates a GIF from the saved network images.
+        
+        :param network_type: 'org' for organizational network, 'social' for social network
+        """
+        images = []
+        file_pattern = f'network_visualizations/{network_type}_network_step_*.png'
+        for filename in sorted(glob.glob(file_pattern)):
+            images.append(imageio.imread(filename))
+        
+        output_file = f'{network_type}_network_evolution.gif'
+        imageio.mimsave(output_file, images, duration=0.5)  # 0.5 seconds per frame
+        print(f"GIF created: {output_file}")
+
+    def create_network_video(self, network_type):
+        """
+        Creates a video from the saved network images.
+        
+        :param network_type: 'org' for organizational network, 'social' for social network
+        """
+        file_pattern = f'network_visualizations/{network_type}_network_step_*.png'
+        image_files = sorted(glob.glob(file_pattern))
+        
+        if not image_files:
+            print(f"No images found for {network_type} network.")
+            return
+        
+        frame = cv2.imread(image_files[0])
+        height, width, layers = frame.shape
+        
+        output_file = f'{network_type}_network_evolution.mp4'
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video = cv2.VideoWriter(output_file, fourcc, 2, (width, height))  # 2 fps
+        
+        for image_file in image_files:
+            video.write(cv2.imread(image_file))
+        
+        cv2.destroyAllWindows()
+        video.release()
+        print(f"Video created: {output_file}")
+
+    def create_network_animations(self):
+        """
+        Creates both GIFs and videos for organizational and social networks.
+        """
+        for network_type in ['org', 'social']:
+            self.create_network_gif(network_type)
+            self.create_network_video(network_type)

@@ -30,6 +30,7 @@ def main():
 
     # Run the model for a specified number of steps
     model.run_model(n_steps=100)
-
+    model.create_network_animations()
+    
 if __name__ == "__main__":
     main()
